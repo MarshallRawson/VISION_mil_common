@@ -121,3 +121,4 @@ class CentroidObjectsTracker(ObjectsTracker):
         Calculates distance by the euclidian distance between the centroids
         '''
         return np.linalg.norm(a - b)
+
