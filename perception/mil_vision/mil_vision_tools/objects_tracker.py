@@ -113,8 +113,8 @@ class CentroidObjectsTracker(ObjectsTracker):
 
     Features must be added as a (2,) numpy array (Cx, Cy)
     '''
-    def __init__(self, max_distance=10.0, **kwargs):
-        super(CentroidObjectsTracker, self).__init__(max_distance=max_distance, **kwargs)
+    def __init__(self, max_distance=10.0, expiration_seconds = 5.0, **kwargs):
+        super(CentroidObjectsTracker, self).__init__(expiration_seconds=expiration_seconds, max_distance=max_distance, **kwargs)
 
     def distance(self, a, b):
         '''
@@ -122,21 +122,3 @@ class CentroidObjectsTracker(ObjectsTracker):
         '''
         return np.linalg.norm(a - b)
     
-
-
-class CentroidWidthHeightTracker(ObjectsTracker):
-    '''
-    Implements ObjectsTracker, using the distance between centroids, diffrence in width, and diffrence in height between the two observations to track.
-    
-    Features must be added as a (4,) numpy array (Cx,Cy, width, height)
-    '''
-    
-    def __init__(self, max_distance = 20.0, **kwargs):
-        super(CentroidWidthHeightTracker, self).__init__(max_distance=max_distance, **kwargs)
-    
-    def distance(self, a, b):
-        return np.linalg.norm(a - b)
-        
-    
-    
-
