@@ -2,7 +2,7 @@
 import abc
 import numpy as np
 import rospy
-
+import math
 
 __author__ = "Kevin Allen"
 
@@ -122,88 +122,10 @@ class CentroidObjectsTracker(ObjectsTracker):
         '''
         return np.linalg.norm(a - b)
 
-class MultilateratedTracker(ObjectsTracker): 
-    '''
-    Implements ObjectsTracker, using the distance between the closet approach between projection vectors 
-
-    Features must be added as a (2,3) numpy array ([x,y,z],[x,y,z], np.float32) format:origin,unit vector 
-                                                     /\       /\
-                                                   origin  unit vector
-    '''
-    def __init__(self, max_distance=.10, expiration_seconds = 5.0, **kwargs):
-        super(CentroidObjectsTracker, self).__init__(expiration_seconds=expiration_seconds, max_distance=max_distance, **kwargs)
-    
-    def distance(self, a, b):
-        '''
-        Math:
-        v's are 3d vectors
-        p's are 3d points(origins in this case)
-        t's are scalars(held in T)
-        L's are lines
-        L0 = p0+t0*v0
-        L1 = p1+t1*v1
-        the vector component of the shortest line between them is v2 = v1 x v0
-
-        the origin of L2 is some point on L0: p0+t0*v0
-
-        therfore: L3 = p0+t0*v0+t2*v2, also written later as: L3 = p3+t3*v3
-        
-        it follows that
-        p0+t0*v0+t2*v2 = p1+t1*v1
-        
-        t0*v0 - (t1*v1) + t2*v2 = p1-p0
-
-        written in matrix form:
-        --         --
-        |v0x v1x v2x|
-        |v0y v1y v2y| = V
-        |v0z v1z v2z|
-        --         --
-         --
-        |t0|
-        |t1| = T
-        |t2|
-         --
-         ---
-        |p2x|
-        |p2y| = p2
-        |p2z|
-         ---
-         --       --     --     ---
-        |v0x v1x v2x|   |t0|   |p2x|
-        |v0y v1y v2y| x |t1| = |p2y|
-        |v0z v1z v2z|   |t2|   |p2z|
-         --       --     --     ---
-        
-        T = p3*inv(V)
-
-        the closest points on l0 and l1 occur at L0(t0) = p0Prime and L1(t1) = p1Prime
-        '''
-        p0 = np.array([a[0,0]],
-                      [a[0,1]],
-                      [a[0,2]])
-        p1 = np.array([b[0,0]],
-                      [b[0,1]],
-                      [b[0,2]])
-        p2 = p1-p0
-        
-        v0 = a[1]
-        v1 = b[1]
-        v2 = np.cross(v1,v0)
-        
-        V = np.array([v0[0],-v1[0],v2[0]],
-                     [v0[1],-v1[1],v2[1]],
-                     [v0[2],-v1[2],v2[2]])
-        T = p2.dot(np.linalg.inv(V))
-        
-        p0Prime = p0+(T[0]*v0) 
-        p1Prime = p1+(T[1]*v1)
-        
-        return np.linalg.norm(p0Prime-p1Prime)
 
 
 
 
 
 
- 
+

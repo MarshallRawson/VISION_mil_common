@@ -1,0 +1,33 @@
+<launch>
+
+<param name = "camera_feed" value="/camera/front/right/image_raw" type="string"/>
+
+<arg name = "disco" default = "False"/>
+<param name = "disco"  value= "$(arg disco)" type="bool"/>
+
+
+<arg name = "minus" default = ""/>
+<param name = "minus"  value= "$(arg minus)" type="string"/>
+
+
+<arg name = "only" default = ""/>
+<param name = "only"  value= "$(arg only)" type="string"/>
+
+
+<node pkg="vision" type="visualization.py" name="visualization" output="screen"/>
+
+<param name = "maxdistance" value = "40.0" type = "float"/>
+
+<node pkg="vision" type="image_object_tracker.py" name="image_object_tracker" output="screen"/>
+
+
+<param name = "box"               value = "2" type = "int"/>
+<param name = "spot"              value = "2" type = "int"/>
+<param name = "strange"           value = "2" type = "int"/>
+<param name = "in_here_somewhere" value = "2" type = "int"/>
+
+
+<node pkg="vision" type = "ex_cv.py" name="ex_cv" output="screen"/>
+
+
+</launch>
