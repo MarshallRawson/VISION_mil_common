@@ -11,6 +11,10 @@ from geometry_msgs.msg import PointStamped
 
 import ast
 import numpy as np
+
+
+
+#still under development
 class multilaterator:
     def __init__(self):
         
@@ -18,32 +22,27 @@ class multilaterator:
         
         self.pub = rospy.Publisher("multilaterated_objects", PointStamped)
         
-        self.tf_listener = tf.TransformListener(rospy.Duration(10))
+        self.tf_listener = tf.TransformListener(rospy.Duration(20))
         
         self.stamp = rospy.Header().stamp
         
         self.tracker = MultilateratedTracker()
         
         self.camera = "/camera/front/left/image_rect_color"
-         
-        
+                
         self.camera_model = None
         
-        self.image_sub = Image_Subscriber(self.camera, self.image_cb)
+        self.image_sub = Image_Subscriber(self.camera)
         self.camera_info = self.image_sub.wait_for_camera_info()
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(self.camera_info)
         self.frame_id = self.camera_model.tfFrame()
          
-        #print type(self.camera_info)
-        #print type(self.camera_model)
     
-    def image_cb(self, msg):
-        #self.stamp = self.image_sub.last_image_time
-        return
         
     def objects_in_image_cb(self, objects_in_image):
         stamp = objects_in_image.header.stamp
+        #get the transform for when the objects are from
         if self.camera_model == None:
             return
 
@@ -52,6 +51,7 @@ class multilaterator:
                                               self.camera_model.tfFrame(),
                                               stamp,
                                               rospy.Duration(0.1))
+        
         except tf.Exception as e:
             rospy.logwarn(
                  'Could not transform camera to map: {}'.format(e))
@@ -59,7 +59,7 @@ class multilaterator:
         
         (t, rot_q) = self.tf_listener.lookupTransform(
            '/map', self.camera_model.tfFrame(), stamp)
-         
+        
         t = np.asarray(t)
         
         P = np.asarray(self.camera_info.P).reshape(3,4) 
@@ -68,19 +68,23 @@ class multilaterator:
         R = quaternion_matrix(rot_q)
  
         for i in objects_in_image.objects:
+            #get the id for each the object in image. (these are the same id's from the tracker in iamge_objects_tracker)
             identifier =  ast.literal_eval(i.attributes)['id']
-             
-            x = ast.literal_eval(i.attributes)['centroid']
+            
+            x = ast.literal_eval(i.attributes)['centroidh']
             x.append(1)
-            v = Pinv.dot(x)[:3]
-            v = v/np.linalg.norm(v)
+            v = Pinv.dot(x)[:3]e
+            v = v/np.linalg.norm(v)#idk if v is already a unit vector here so just to be safe
+            #get the relative vector from the camera to the object
             vPrime = R.dot(v)
+            #get that vector in map (global) frame
             self.tracker.add_observation(stamp = stamp,features = np.array([t, vPrime]), data = {'id': identifier})
-           
+            #add the observation to the tracker. (t is the origin in map and vPrime is the unit vector in map) 
         self.tracker.clear_expired(now = stamp)
        
-        persistent = self.tracker.get_persistent_objects(min_observations = 2)
-        print 'objects: ',len(persistent)
+        persistent = self.tracker.get_persistent_objects(min_observations = 2)#min observations is so log because testing right now, but MUST be at least to for multilateration
+        print 'objects: ',len(persistent) #debug help
+        #publishing all the persistent objects in map as PointStamped Objects with the stamp from all the way back to the original (or most recent) frame they were in
         for i in persistent:
             point_stamped = PointStamped()
             point_stamped.header.stamp = stamp

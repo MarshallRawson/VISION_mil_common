@@ -17,22 +17,24 @@ class MultilateratedTracker(ObjectsTracker):
     def __init__(self, max_distance=0.1, expiration_seconds = 100, min_angle_diff = .7,**kwargs):
         super(MultilateratedTracker, self).__init__(expiration_seconds=expiration_seconds, max_distance=max_distance, **kwargs)
         self.min_angle_diff = min_angle_diff
+        #note: data is a dictionary in these obejcts
     def add_observation(self, stamp, features, data=None):
         '''
         Add a new observation to the tracked objects.
         @stamp: rospy.Time object representing the time this observation arrived
         @return: The id of the object, or -1 if it was added
         '''
-        for obj in self.objects:
-            
-            
-            dist_of_approach, pose =  self.distance(obj.features, features)
+        for obj in self.objects:            
+            angle, dist_of_approach, pose =  self.distance(obj.features, features)
             if dist_of_approach != None and dist_of_approach<self.max_distance:
+                #if angle between the two vectos is large enough and they approach is close
                 obj.data.update({'pose':pose})
                 obj.data.update({'id':data['id']})
+                #give this object the id of the most recent vector (the old one may have gone away)
                 obj.update(stamp, features, data = obj.data)
                 return obj
-            if dist_of_approach==None and obj.data['id']==data['id']: 
+            if dist_of_approach==None and obj.data['id']==data['id']:
+                #if the angle is too small, but the ids are the same, update the objects vector, but dont add a pose
                 obj.update(stamp, features, data = obj.data)
 
         # No match found, add new
@@ -50,11 +52,11 @@ class MultilateratedTracker(ObjectsTracker):
         v0 = a[1]
         v1 = b[1]
         
-        angle = math.acos(np.dot(v0,v1))
+        angle = math.acos(np.clip(np.dot(v0,v1),-1.0,1.0))
         
         
         if angle<self.min_angle_diff:
-         return None, None
+         return angle, None, None
 
         p2 = p1-p0
         
@@ -119,11 +121,15 @@ class MultilateratedTracker(ObjectsTracker):
         
         
         '''
-        return dist, pose
+        return angle, dist, pose
     
     def get_persistent_objects(self, min_observations=10, min_age=rospy.Duration(0)):
         '''
-        Get a list of objects which have persisted sufficiently long.
+        Get a list of objects which have 
+            persisted sufficiently long
+            have enough observations
+            have a pose(have had an angle that is sufficiently large'
+        
         @param min_observations: Minimum number of times the object was seen to be returned
         @param min_age: Minimum age an object must be to be returned in result
         @return: List of TrackedObject instances of those objects meeting the above criteria

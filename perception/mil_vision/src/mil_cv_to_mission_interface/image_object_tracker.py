@@ -28,60 +28,32 @@ class image_object_tracker:
         
         
     def objects_in_image_cb(self, unfiltered_objects_in_image):
-        
+        # gets unfiltered objects from cv scripts here
         for i in unfiltered_objects_in_image.objects:
+            #currently impliments only the centroid tracker, maybe polygon tracker in near future
             c = centroid(i)
             i.attributes = str({"centroid": c})
+            #note: data field is holding an ObjectInImage i
             obj = self.tracker.add_observation(unfiltered_objects_in_image.header.stamp, np.array(c), data=i)
-            
+        #standard use of CentroidObjectsTracker
         self.tracker.clear_expired(now=unfiltered_objects_in_image.header.stamp)
         
         persistent = self.tracker.get_persistent_objects(min_observations=rospy.get_param("min_observations"), min_age=rospy.Duration(0))
-        objects_in_image = ObjectsInImage()
+        
+
+        objects_in_image = ObjectsInImage()#these are the actual persisten/filtered objects in image
+
         objects_in_image.header = unfiltered_objects_in_image.header
         for i in persistent:
+            #this is done so that subscriber scripts can have the id of things easily
+            #attributes holds a dictionary in string form
             attributes = ast.literal_eval(i.data.attributes)
             attributes["id"] = i.id
             i.data.attributes = str(attributes)
             objects_in_image.objects.append(i.data)
         self.pub_objects_in_image.publish(objects_in_image)
 
-
-
-
-
-     
-    def width_height(self, object_in_image):
-        
-        if len(object_in_image.points) ==0:
-            return [0,0]
-        
-        minX = object_in_image.points[0].x
-        maxX = object_in_image.points[0].x
-        
-        minY = object_in_image.points[0].y
-        maxY = object_in_image.points[0].y
-        
-        for i in object_in_image.points:
-            if i.x>maxX:
-                maxX = i.x
-            if i.x<minX:
-                minX = i.x
-                
-            if i.y>maxY:
-                maxY = i.x
-            if i.y<minY:
-                minY = i.x
-            
-        return [maxX-minX, maxY-minY]
-
-
 if __name__ == '__main__':
     rospy.init_node('image_object_tracker', anonymous = False)
     image_object_tracker = image_object_tracker()
     rospy.spin()
-
-
-
-
-

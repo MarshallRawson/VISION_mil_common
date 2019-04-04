@@ -40,40 +40,43 @@ class visualization:
         self.image_buffer = Queue.Queue()
         
     def tracked_objects_cb(self, tracked_objects):
-        msg=self.image_buffer.get()
-        if self.image_buffer.qsize() > 10:
-            rospy.logwarn("visualization buffer is running %d frames behind camera topic (normal frames behind seen in testing is ~100)" % self.image_buffer.qsize())
-        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp != msg.header.stamp):
-            if tracked_objects.header.stamp-msg.header.stamp<rospy.Duration(0):
-                return
-            msg=self.image_buffer.get()
-        if self.image_buffer.empty():
-            rospy.logwarn("visualization image buffer is empty")
-            return
-        self.overlays = [Overlay(header = tracked_objects.header, object_in_image = i) for i in tracked_objects.objects]
-        overlays = self.select_overlays(msg, self.overlays)
         
+        msg=self.image_buffer.get()
+        #get most recent image
+        if self.image_buffer.qsize() > 200:#give warning if the jank image_buffer is ver big, something may have frozen
+            rospy.logwarn("visualization buffer is running %d frames behind camera topic (normal frames behind seen in testing is ~100)" % self.image_buffer.qsize())
+        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp < msg.header.stamp):#we are only interested in the image that is from the same time as the objects
+            msg=self.image_buffer.get()
+        #if we have gone through all of the images and none of them were satisfactory, return
+        if self.image_buffer.empty():
+            rospy.logwarn("visualization image buffer is empty")#this almost never issues
+            return
+        self.overlays = [Overlay(header = tracked_objects.header, object_in_image = i) for i in tracked_objects.objects]#create an array of overlays of every object published
+        overlays = self.select_overlays(msg, self.overlays)#filter these overlays based on the flags passed in when launched
+        
+        #make a cv image out of the rosmsg
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         except CvBridgeError as e:
             print(e)
             return
-        
+        #draw on all the selected overlays
         cv_image = self.draw_on(cv_image, overlays)
-        
+        #show the cv image in an iamge window
         cv2.imshow('image',cv_image)
         cv2.waitKey(1)
 
     def image_cb(self, msg): 
         self.image_buffer.put(msg)
-        #print"queued new image"
+        #add image to queue
         
     def draw_on(self, img, overlays=[]):
+        #kind of redundent
         for i in overlays:
             img = i.draw_on(img)
         return img
     
-    def select_overlays(self,msg, all_overlays=[]):
+    def select_overlays(self,msg, all_overlays):
         
         selected_overlays = all_overlays
         
@@ -103,6 +106,7 @@ class visualization:
         return selected_overlays
     
     def color_gen(self, n):
+        #generate random colors to draw the overlays with to make more visible
         c = []
         for i in range(n):
             c.append((randint(0,255),randint(0,255),randint(0,255)))
