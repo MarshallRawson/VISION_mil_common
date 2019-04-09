@@ -113,12 +113,12 @@ class CentroidObjectsTracker(ObjectsTracker):
 
     Features must be added as a (2,) numpy array (Cx, Cy)
     '''
-    def __init__(self, max_distance=10.0, expiration_seconds = 5.0, **kwargs):
-        super(CentroidObjectsTracker, self).__init__(expiration_seconds=expiration_seconds, max_distance=max_distance, **kwargs)
+    def __init__(self, max_distance=10.0, **kwargs):
+        super(CentroidObjectsTracker, self).__init__(max_distance=max_distance, **kwargs)
 
     def distance(self, a, b):
         '''
         Calculates distance by the euclidian distance between the centroids
         '''
         return np.linalg.norm(a - b)
-    
+
