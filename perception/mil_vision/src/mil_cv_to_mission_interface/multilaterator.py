@@ -20,7 +20,7 @@ class multilaterator:
         
         rospy.Subscriber("persistent_objects_in_image", ObjectsInImage, self.objects_in_image_cb)
         
-        self.pub = rospy.Publisher("multilaterated_objects", PointStamped)
+        self.pub = rospy.Publisher("multilaterated_objects", PointStamped, queue_size = 10)
         
         self.tf_listener = tf.TransformListener(rospy.Duration(20))
         
@@ -73,7 +73,7 @@ class multilaterator:
             
             x = ast.literal_eval(i.attributes)['centroidh']
             x.append(1)
-            v = Pinv.dot(x)[:3]e
+            v = Pinv.dot(x)[:3]
             v = v/np.linalg.norm(v)#idk if v is already a unit vector here so just to be safe
             #get the relative vector from the camera to the object
             vPrime = R.dot(v)
