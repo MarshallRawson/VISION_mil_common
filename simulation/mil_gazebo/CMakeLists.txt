@@ -5,6 +5,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   gazebo_dev
   gazebo_ros
+  gazebo_plugins
   mil_msgs
   point_cloud_object_detection_and_recognition
 )
@@ -14,6 +15,7 @@ catkin_package(INCLUDE_DIRS include)
 include_directories(
     ${catkin_INCLUDE_DIRS}
     ${GAZEBO_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
     include
 )
 
@@ -124,3 +126,21 @@ target_link_libraries(pcodar_gazebo
 add_dependencies(pcodar_gazebo
   ${catkin_EXPORTED_TARGETS}
 )
+
+
+#Add image_ground_truth plugin
+add_library(
+    mil_image_ground_truth
+        src/mil_image_ground_truth.cpp
+)
+target_link_libraries(mil_image_ground_truth
+  ${GAZEBO_PLUGINS} 
+  ${catkin_LIBRARIES}
+  ${GAZEBO_LIBRARIES}
+)
+add_dependencies(mil_image_ground_truth
+  ${catkin_EXPORTED_TARGETS}
+  mil_msgs
+)
+
+

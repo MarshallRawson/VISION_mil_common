@@ -28,7 +28,7 @@ class multilaterator:
         
         self.tracker = MultilateratedTracker()
         
-        self.camera = "/camera/front/left/image_rect_color"
+        self.camera = "/camera/front/left/image_rect_color"#needs to be replaced with rosparam
                 
         self.camera_model = None
         
