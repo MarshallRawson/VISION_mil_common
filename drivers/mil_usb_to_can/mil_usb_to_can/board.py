@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import serial
-from utils import ReceivePacket, CommandPacket
+from utils import ReceivePacket, CommandPacket, ChecksumException
 from simulation import SimulatedUSBtoCAN
 from threading import Lock
 
@@ -33,8 +33,15 @@ class USBtoCANBoard(object):
         with self.lock:
             if self.ser.in_waiting == 0:
                 return None
-            return ReceivePacket.read_packet(self.ser)
-
+            #return ReceivePacket.read_packet(self.ser)
+            
+            try:
+                r = ReceivePacket.read_packet(self.ser)
+                return r
+            except ChecksumException as e:
+                print e
+                return None
+            
     def send_data(self, data, can_id=0):
         '''
         Sends data to a CAN device
