@@ -20,9 +20,9 @@ class image_object_tracker:
         #Subscribers
         
         
-        rospy.Subscriber('VISION', ObjectsInImage,self.objects_in_image_cb)
+        rospy.Subscriber("/raw_objects_topic", ObjectsInImage,self.objects_in_image_cb)
         
-        self.pub_objects_in_image = rospy.Publisher('persistent_objects_in_image', ObjectsInImage, queue_size = 1)
+        self.pub_objects_in_image = rospy.Publisher("persistent_objects_topic", ObjectsInImage, queue_size = 1)
         
         self.tracker = CentroidObjectsTracker(expiration_seconds = rospy.get_param("expiration_seconds"), max_distance=rospy.get_param("max_distance"))
         
@@ -54,6 +54,6 @@ class image_object_tracker:
         self.pub_objects_in_image.publish(objects_in_image)
 
 if __name__ == '__main__':
-    rospy.init_node('image_object_tracker', anonymous = False)
+    rospy.init_node("image_object_tracker", anonymous = False)
     image_object_tracker = image_object_tracker()
     rospy.spin()

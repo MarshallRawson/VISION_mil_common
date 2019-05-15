@@ -46,7 +46,6 @@ class visualization:
         #get most recent image
         if self.image_buffer.qsize() > 200:#give warning if the jank image_buffer is ver big, something may have frozen
             rospy.logwarn("visualization buffer is running %d frames behind camera topic (normal frames behind seen in testing is ~100)" % self.image_buffer.qsize())
-        print "image_buffer size:", self.image_buffer.qsize()
         while (not self.image_buffer.empty()) and (tracked_objects.header.stamp < msg.header.stamp-rospy.Duration(.01)):#we are only interested in the image that is from the same time as the objects 
             msg=self.image_buffer.get()
         #if we have gone through all of the images and none of them were satisfactory (of the same time as the objects), return
@@ -73,13 +72,13 @@ class visualization:
     def image_cb(self, msg):
         if not self.init:
             return
-        #print "queing image" 
+        
         self.image_buffer.put(msg)
         #add image to queue
         
     def draw_on(self, img, overlays=[]):
         #kind of redundent
-        print "drawing"
+        
         for i in overlays:
             img = i.draw_on(img)
         return img

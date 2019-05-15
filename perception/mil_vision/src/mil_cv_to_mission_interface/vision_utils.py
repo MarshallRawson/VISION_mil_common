@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 from mil_msgs.msg import ObjectInImage
 
-
-
-
 def centroid(object_in_image):
     x=0
     y=0

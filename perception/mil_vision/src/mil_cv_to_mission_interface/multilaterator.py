@@ -71,7 +71,7 @@ class multilaterator:
             #get the id for each the object in image. (these are the same id's from the tracker in iamge_objects_tracker)
             identifier =  ast.literal_eval(i.attributes)['id']
             
-            x = ast.literal_eval(i.attributes)['centroidh']
+            x = ast.literal_eval(i.attributes)['centroid']
             x.append(1)
             v = Pinv.dot(x)[:3]
             v = v/np.linalg.norm(v)#idk if v is already a unit vector here so just to be safe
@@ -83,7 +83,7 @@ class multilaterator:
         self.tracker.clear_expired(now = stamp)
        
         persistent = self.tracker.get_persistent_objects(min_observations = 2)#min observations is so log because testing right now, but MUST be at least to for multilateration
-        print 'objects: ',len(persistent) #debug help
+        #print 'objects: ',len(persistent) #debug help
         #publishing all the persistent objects in map as PointStamped Objects with the stamp from all the way back to the original (or most recent) frame they were in
         for i in persistent:
             point_stamped = PointStamped()
