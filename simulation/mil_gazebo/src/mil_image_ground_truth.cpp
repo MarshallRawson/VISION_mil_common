@@ -53,9 +53,10 @@ void MilImageGroundTruth::ImageCB(const sensor_msgs::Image& _msg)
 {
   if(buffer.size() == 0)
     return;
-
   while(buffer.front().header.stamp < _msg.header.stamp && buffer.size() > 1)
     buffer.pop();
+  ROS_INFO("objects buffer size: %d", buffer.size());
+  ROS_INFO("object- image: %f",buffer.front().header.stamp- _msg.header.stamp);
   buffer.front().header = _msg.header;
   objects_pub_.publish(buffer.front());
   return;

@@ -44,16 +44,10 @@ class visualization:
             return
         msg=self.image_buffer.get()
         #get most recent image
-        if self.image_buffer.qsize() > 0:#give warning if the jank image_buffer is ver big, something may have frozen
+        if self.image_buffer.qsize() > 200:#give warning if the jank image_buffer is ver big, something may have frozen
             rospy.logwarn("visualization buffer is running %d frames behind camera topic (normal frames behind seen in testing is ~100)" % self.image_buffer.qsize())
-        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp< msg.header.stamp):#we are only interested in the image that is from the same time as the objects 
+        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp-msg.header.stamp > rospy.Duration(0)):#we are only interested in the image that is from the same time as the objects(or a close as we can get) 
             msg=self.image_buffer.get()
-        #if we have gone through all of the images and none of them were satisfactory (of the same time as the objects), return
-        
-        if self.image_buffer.empty():
-            rospy.logwarn("visualization image buffer is empty")#this almost never issues
-            return
-        
         self.overlays = [Overlay(header = tracked_objects.header, object_in_image = i) for i in tracked_objects.objects]#create an array of overlays of every object published
         overlays = self.select_overlays(msg, self.overlays)#filter these overlays based on the flags passed in when launched
         
