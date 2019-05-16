@@ -3,14 +3,14 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 
 #include <ros/ros.h>
 #include <gazebo/plugins/CameraPlugin.hh>
 #include <gazebo/common/common.hh>
 #include <gazebo/physics/physics.hh>
 #include <sensor_msgs/Image.h>
-#include <image_geometry/pinhole_camera_model.h>
-#include <tf/transform_listener.h>
+#include <geometry_msgs/PointStamped.h>
 
 #include <mil_msgs/ObjectsInImage.h>
 #include <mil_msgs/ObjectInImage.h>
@@ -22,31 +22,26 @@ class MilImageGroundTruth : public gazebo::CameraPlugin
   private:
     ros::NodeHandle n_;
     ros::Publisher objects_pub_;
+    ros::Subscriber image_sub_;
 
     ros::Publisher debug_pub_map_;
     ros::Publisher debug_pub_cam_;
 
-    ros::Subscriber image_sub_;
-    ros::Subscriber camera_info_sub_;
-    sensor_msgs::CameraInfoConstPtr cam_info_;
-    image_geometry::PinholeCameraModel camera_;
-    tf::TransformListener tf_listener_;
+    std::queue<mil_msgs::ObjectsInImage> buffer;
 
-  public: MilImageGroundTruth() : gazebo::CameraPlugin(), tf_listener_(ros::Duration(2.0)){}
+  public: MilImageGroundTruth() : gazebo::CameraPlugin(){}
 
   public: ~MilImageGroundTruth(){}
 
   public: 
     void Load(gazebo::sensors::SensorPtr _parent, 
               sdf::ElementPtr            _sdf);
-/*  protected:
+
+  protected:
     void OnNewFrame(const unsigned char *_image,
                           unsigned int   _width, unsigned int       _height,
                           unsigned int   _depth, const std::string &_format);
-*/
 
-  protected:
-    void CameraInfoCB(const sensor_msgs::CameraInfoConstPtr& _cam_info);
   protected:
     void ImageCB(const sensor_msgs::Image& msg);
 

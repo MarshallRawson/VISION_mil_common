@@ -44,9 +44,9 @@ class visualization:
             return
         msg=self.image_buffer.get()
         #get most recent image
-        if self.image_buffer.qsize() > 200:#give warning if the jank image_buffer is ver big, something may have frozen
+        if self.image_buffer.qsize() > 0:#give warning if the jank image_buffer is ver big, something may have frozen
             rospy.logwarn("visualization buffer is running %d frames behind camera topic (normal frames behind seen in testing is ~100)" % self.image_buffer.qsize())
-        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp < msg.header.stamp-rospy.Duration(.01)):#we are only interested in the image that is from the same time as the objects 
+        while (not self.image_buffer.empty()) and (tracked_objects.header.stamp< msg.header.stamp):#we are only interested in the image that is from the same time as the objects 
             msg=self.image_buffer.get()
         #if we have gone through all of the images and none of them were satisfactory (of the same time as the objects), return
         
