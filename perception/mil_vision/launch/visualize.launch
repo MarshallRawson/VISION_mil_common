@@ -20,6 +20,7 @@
 
 <param name = "persistent_objects" value="/persistent_objects"/>
 
+
 <!--down cam-->
 <!--
 <node pkg="mil_vision" type="image_object_tracker.py" name="image_object_tracker_down_left_cam_sensor" output="screen">
@@ -48,4 +49,19 @@
   <remap from="visualizer" to="visualizer_front_left_cam_sensor"/>
 </node>
 
+
+<!--front right cam-->
+<!--
+<node pkg="mil_vision" type="image_object_tracker.py" name="image_object_tracker_front_right_cam_sensor" output="screen">
+  <remap from="/raw_objects_topic" to="/image_ground_truth/front_right_cam_sensor"/>
+  <remap from="/persistent_objects_topic" to="/persistent_objects/front_right_cam_sensor"/>
+  <remap from="image_object_tracker" to="image_object_tracker_front_right_cam_sensor"/>
+</node>
+
+<node pkg="mil_vision" type="visualizer.py" name="visualizer_front_right_cam_sensor" output="screen">
+  <remap from="/camera_topic" to="/camera/front/right/image_color"/>
+  <remap from="/persistent_objects_topic" to="/persistent_objects/front_right_cam_sensor"/>
+  <remap from="visualizer" to="visualizer_front_right_cam_sensor"/>
+</node>
+-->
 </launch>

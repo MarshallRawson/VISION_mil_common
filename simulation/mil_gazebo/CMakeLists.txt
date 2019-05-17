@@ -6,8 +6,6 @@ find_package(catkin REQUIRED COMPONENTS
   gazebo_dev
   gazebo_ros
   gazebo_plugins
-  mil_msgs
-  image_geometry
   point_cloud_object_detection_and_recognition
 )
 
@@ -141,8 +139,19 @@ target_link_libraries(mil_image_ground_truth
 )
 add_dependencies(mil_image_ground_truth
   ${catkin_EXPORTED_TARGETS}
-  mil_msgs
-  image_geometry
 )
 
 
+#Add mil_map2 plugin
+add_library(
+    mil_map2
+        src/mil_map2.cpp
+)
+target_link_libraries(mil_map2
+  ${GAZEBO_PLUGINS} 
+  ${catkin_LIBRARIES}
+  ${GAZEBO_LIBRARIES}
+)
+add_dependencies(mil_map2 
+  ${catkin_EXPORTED_TARGETS}
+)
