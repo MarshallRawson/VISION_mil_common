@@ -14,7 +14,7 @@ class MultilateratedTracker(ObjectsTracker):
                                                      /\       /\
                                                    origin  unit vector
     '''
-    def __init__(self, max_distance=0.1, expiration_seconds = 100, min_angle_diff = .7,**kwargs):
+    def __init__(self, max_distance= .5, expiration_seconds = 10, min_angle_diff = 0.5,**kwargs):
         super(MultilateratedTracker, self).__init__(expiration_seconds=expiration_seconds, max_distance=max_distance, **kwargs)
         self.min_angle_diff = min_angle_diff
         #note: data is a dictionary in these obejcts
@@ -24,8 +24,8 @@ class MultilateratedTracker(ObjectsTracker):
         @stamp: rospy.Time object representing the time this observation arrived
         @return: The id of the object, or -1 if it was added
         '''
-        for obj in self.objects:            
-            angle, dist_of_approach, pose =  self.distance(obj.features, features)
+        for obj in self.objects:           
+            dist_of_approach, pose =  self.distance(obj.features, features)
             if dist_of_approach != None and dist_of_approach<self.max_distance:
                 #if angle between the two vectos is large enough and they approach is close
                 obj.data.update({'pose':pose})
@@ -33,10 +33,11 @@ class MultilateratedTracker(ObjectsTracker):
                 #give this object the id of the most recent vector (the old one may have gone away)
                 obj.update(stamp, features, data = obj.data)
                 return obj
+            
             if dist_of_approach==None and obj.data['id']==data['id']:
-                #if the angle is too small, but the ids are the same, update the objects vector, but dont add a pose
-                obj.update(stamp, features, data = obj.data)
-
+                #if the angle is too small, but the ids are the same, do nothing
+                return
+            
         # No match found, add new
         new_obj = TrackedObject(self.max_id, stamp, features, data=data)
         self.max_id += 1
@@ -45,7 +46,7 @@ class MultilateratedTracker(ObjectsTracker):
    
     
     def distance(self, a, b):
-
+        #print "testing distance"
         p0 = np.array(a[0])
         p1 = np.array(b[0])
 	
@@ -54,16 +55,17 @@ class MultilateratedTracker(ObjectsTracker):
         
         angle = math.acos(np.clip(np.dot(v0,v1),-1.0,1.0))
         
-        
         if angle<self.min_angle_diff:
-         return angle, None, None
+         #print "      angle too small"
+         return None, None
 
+        print "angle:", angle
         p2 = p1-p0
         
         v2 = np.cross(v1,v0)
         
         V = np.transpose(np.array([v0,-v1,v2]))
-        T = p2.dot(np.linalg.inv(V))
+        T = np.linalg.inv(V).dot(p2)
 
         if T[0]<0 or T[1] <0:
             return None, None 
@@ -73,7 +75,8 @@ class MultilateratedTracker(ObjectsTracker):
         
         dist = np.linalg.norm(p0Prime-p1Prime) 
         pose = np.true_divide(np.add(p0Prime, p1Prime), 2)
-        
+        print "dist of approach:", dist
+        print "pose:", pose
         '''
         Math:
         v's are 3d vectors
@@ -84,10 +87,12 @@ class MultilateratedTracker(ObjectsTracker):
         L1 = p1+t1*v1
         the vector component of the shortest line between them is v2 = v1 x v0
 
+        Let L2 be the line connecting L0 and L1 at their closest points of approching each other
         the origin of L2 is some point on L0: p0+t0*v0
 
-        therfore: L3 = p0+t0*v0+t2*v2, also written later as: L3 = p3+t3*v3
-        
+        therfore: L2 = p0+t0*v0+t2*v2, also written later as: L2 = p2+t2*v2
+       
+        since some point on L2 will be on L1 by definition,
         it follows that
         p0+t0*v0+t2*v2 = p1+t1*v1
         
@@ -115,13 +120,13 @@ class MultilateratedTracker(ObjectsTracker):
         |v0z v1z v2z|   |t2|   |p2z|
          --       --     --     ---
         
-        T = p3*inv(V)
+        T = inv(V)*p2
 
-        the closest points on l0 and l1 occur at L0(t0) = p0Prime and L1(t1) = p1Prime
+        the closest points on L0 and L1 occur at L0(t0) = p0Prime and L1(t1) = p1Prime
         
         
         '''
-        return angle, dist, pose
+        return dist, pose
     
     def get_persistent_objects(self, min_observations=10, min_age=rospy.Duration(0)):
         '''

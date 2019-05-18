@@ -1,5 +1,6 @@
 <launch>
 
+
 <param name ="raw_objects" value = "/image_ground_truth"/>
 
 <param name = "max_distance" value = "100"/>
@@ -8,47 +9,55 @@
 
 <param name = "min_observations" value = "1"/>
 
+<param name = "min_age" value = "0.0"/>
+
+
+
+<param name = "multi_max_distance" value = ".5"/>
+
+<param name = "multi_expiration_seconds" value = "10"/>
+
+<param name = "multi_min_observations" value = "2"/>
+
+<param name = "multi_min_age" value = "0.0"/>
+
+<param name = "multi_min_angle" value = "0.5"/>
+
+<param name = "map" value = "map2"/>
+
+
 
 <arg name = "disco" default = "False"/>
-<param name = "disco"  value= "$(arg disco)" type="bool"/>
+<param name = "disco"  value= "$(arg disco)"/>
 
 <arg name = "minus" default = ""/>
-<param name = "minus"  value= "$(arg minus)" type="string"/>
+<param name = "minus"  value= "$(arg minus)"/>
 
 <arg name = "only" default = ""/>
-<param name = "only"  value= "$(arg only)" type="string"/>
+<param name = "only"  value= "$(arg only)"/>
 
 <param name = "persistent_objects" value="/persistent_objects"/>
 
 
-<!--down cam-->
-<!--
-<node pkg="mil_vision" type="image_object_tracker.py" name="image_object_tracker_down_left_cam_sensor" output="screen">
-  <remap from="/raw_objects_topic" to="/image_ground_truth/down_left_cam_sensor"/>
-  <remap from="/persistent_objects_topic" to="/persistent_objects/down_left_cam_sensor"/>
-  <remap from="image_object_tracker" to="image_object_tracker_down_left_cam_sensor"/>
-</node>
-
-<node pkg="mil_vision" type="visualizer.py" name="visualizer_down_left_cam_sensor" output="screen">
-  <remap from="/camera_topic" to="/camera/down/image_rect_color"/>
-  <remap from="/persistent_objects_topic" to="/persistent_objects/down_left_cam_sensor"/>
-  <remap from="visualizer" to="visualizer_down_left_cam_sensor"/>
-</node>
--->
-
 <!--front left cam-->
+<group>
+<remap from="/persistent_objects_topic" to="/persistent_objects/front_left_cam_sensor"/>
+<remap from="/camera_topic" to="/camera/front/left/image_color"/>
+
 <node pkg="mil_vision" type="image_object_tracker.py" name="image_object_tracker_front_left_cam_sensor" output="screen">
   <remap from="/raw_objects_topic" to="/image_ground_truth/front_left_cam_sensor"/>
-  <remap from="/persistent_objects_topic" to="/persistent_objects/front_left_cam_sensor"/>
   <remap from="image_object_tracker" to="image_object_tracker_front_left_cam_sensor"/>
 </node>
 
 <node pkg="mil_vision" type="visualizer.py" name="visualizer_front_left_cam_sensor" output="screen">
-  <remap from="/camera_topic" to="/camera/front/left/image_color"/>
-  <remap from="/persistent_objects_topic" to="/persistent_objects/front_left_cam_sensor"/>
   <remap from="visualizer" to="visualizer_front_left_cam_sensor"/>
 </node>
+<node pkg="mil_vision" type="multilaterator.py" name="multilaterator_front_left_cam_sensor" output="screen">
+  <remap from="/multilaterated_objects" to="/multilaterated_objects_front_left_cam_sensor"/>
+</node>
 
+
+</group>
 
 <!--front right cam-->
 <!--
@@ -62,6 +71,20 @@
   <remap from="/camera_topic" to="/camera/front/right/image_color"/>
   <remap from="/persistent_objects_topic" to="/persistent_objects/front_right_cam_sensor"/>
   <remap from="visualizer" to="visualizer_front_right_cam_sensor"/>
+</node>
+-->
+<!--down cam-->
+<!--
+<node pkg="mil_vision" type="image_object_tracker.py" name="image_object_tracker_down_left_cam_sensor" output="screen">
+  <remap from="/raw_objects_topic" to="/image_ground_truth/down_left_cam_sensor"/>
+  <remap from="/persistent_objects_topic" to="/persistent_objects/down_left_cam_sensor"/>
+  <remap from="image_object_tracker" to="image_object_tracker_down_left_cam_sensor"/>
+</node>
+
+<node pkg="mil_vision" type="visualizer.py" name="visualizer_down_left_cam_sensor" output="screen">
+  <remap from="/camera_topic" to="/camera/down/image_rect_color"/>
+  <remap from="/persistent_objects_topic" to="/persistent_objects/down_left_cam_sensor"/>
+  <remap from="visualizer" to="visualizer_down_left_cam_sensor"/>
 </node>
 -->
 </launch>

@@ -42,8 +42,9 @@ void MilImageGroundTruth::OnNewFrame(const unsigned char *_image,
     object_in_image.points.resize(1);
     object_in_image.points.at(0).x = parentSensor->Camera()->Project(v)[0];
     object_in_image.points.at(0).y = parentSensor->Camera()->Project(v)[1];
-
-    objects_in_image.objects.push_back(object_in_image);
+    //if the projection puts it outside of image, dont publish it
+    if (((object_in_image.points.at(0).x > -1)&&(object_in_image.points.at(0).x < width))&&((object_in_image.points.at(0).y > -1)&&(object_in_image.points.at(0).y < height)))
+      objects_in_image.objects.push_back(object_in_image);
   }
   buffer.push(objects_in_image);
   return;
