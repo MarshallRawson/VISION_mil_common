@@ -9,15 +9,10 @@ void MilImageGroundTruth::Load(gazebo::sensors::SensorPtr _parent,
   std::string image_topic_name = "image_raw";
   if (_sdf->HasElement("imageTopicName"))
     image_topic_name = _sdf->Get<std::string>("imageTopicName");
-  std::string camera_info_topic_name = "camera_info";
-  if (_sdf->HasElement("cameraInfoTopicName"))
-    camera_info_topic_name = _sdf->Get<std::string>("cameraInfoTopicName");
 
   image_sub_ = n_.subscribe(image_topic_name, 1, &MilImageGroundTruth::ImageCB, this);
+  
   objects_pub_ = n_.advertise<mil_msgs::ObjectsInImage>("/image_ground_truth/"+(parentSensor->Name()), 1000);
-
-  debug_pub_map_ = n_.advertise<geometry_msgs::PointStamped>("/DEBUG/"+(parentSensor->Name())+"/map", 1);
-  debug_pub_cam_ = n_.advertise<geometry_msgs::PointStamped>("/DEBUG/"+(parentSensor->Name())+"/cam", 1);
 }
 
 
@@ -46,6 +41,7 @@ void MilImageGroundTruth::OnNewFrame(const unsigned char *_image,
     if (((object_in_image.points.at(0).x > -1)&&(object_in_image.points.at(0).x < width))&&((object_in_image.points.at(0).y > -1)&&(object_in_image.points.at(0).y < height)))
       objects_in_image.objects.push_back(object_in_image);
   }
+  //putting the object in images in a buffer so that covance may be applied to the image publishing timing
   buffer.push(objects_in_image);
   return;
 }
@@ -56,8 +52,6 @@ void MilImageGroundTruth::ImageCB(const sensor_msgs::Image& _msg)
     return;
   while(buffer.front().header.stamp < _msg.header.stamp && buffer.size() > 1)
     buffer.pop();
-  ROS_INFO("objects buffer size: %d", buffer.size());
-  ROS_INFO("object- image: %f",buffer.front().header.stamp- _msg.header.stamp);
   buffer.front().header = _msg.header;
   objects_pub_.publish(buffer.front());
   return;

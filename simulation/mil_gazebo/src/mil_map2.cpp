@@ -8,7 +8,7 @@ void MilMap2::Load(gazebo::physics::WorldPtr _world, sdf::ElementPtr _sdf)
   map_to_map2.header.stamp = ros::Time::now();
   map_to_map2.header.frame_id = "map";
   map_to_map2.child_frame_id = "map2";
-
+  //where odometry thinks the sub starts every time gazbo is started  (these numbers are not perfect)
   map_to_map2.transform.translation.x = -0.193607642642;
   map_to_map2.transform.translation.y = -0.0875879583866;
   map_to_map2.transform.translation.z = 0.100750817837;
